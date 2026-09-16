@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/fetch.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/public/index.html" }
+  ]
+}
