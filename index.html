@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Delta Key Auto-Fetcher</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#1a1a2e 0%,#0a0a12 70%);color:#e8e8f0;font-family:'Segoe UI',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
+  .box{width:100%;max-width:700px;background:rgba(20,20,32,.85);border:1px solid rgba(120,80,255,.35);border-radius:16px;padding:32px;box-shadow:0 0 60px rgba(120,80,255,.15)}
+  h1{margin:0 0 6px;font-size:22px}
+  .sub{color:#8888aa;font-size:13px;margin-bottom:22px}
+  textarea{width:100%;min-height:90px;resize:vertical;background:#0e0e18;color:#d0d0e0;border:1px solid #2a2a40;border-radius:10px;padding:14px;font-family:Consolas,monospace;font-size:12px;outline:none}
+  textarea:focus{border-color:#7850ff}
+  button{margin-top:16px;width:100%;background:linear-gradient(135deg,#7850ff,#4a2aff);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.5;cursor:wait}
+  .result{margin-top:20px;padding:16px;background:#0e0e18;border:1px solid #2a2a40;border-radius:10px;font-family:Consolas,monospace;font-size:13px;word-break:break-all;display:none}
+  .result.show{display:block}
+  .key{color:#4aff8c;font-size:20px;font-weight:700;letter-spacing:2px;margin-top:12px;user-select:all;padding:14px;background:#0a2a15;border:1px solid #1a5a2a;border-radius:8px;text-align:center}
+  .err{color:#ff5050}
+  .status{color:#8888aa;font-size:12px;margin-top:8px;white-space:pre-wrap}
+  .log{margin-top:12px;font-size:11px;color:#7777bb;font-family:Consolas,monospace;max-height:200px;overflow-y:auto;background:#08080f;padding:10px;border-radius:6px;white-space:pre-wrap;line-height:1.5}
+  .copy{margin-top:12px;background:#1a1a2e;border:1px solid #2a2a40;color:#c0c0d0;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;width:100%}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #7850ff;border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;margin-right:8px;vertical-align:middle}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>⚡ Delta Key Auto-Fetcher</h1>
+  <div class="sub">Paste link lootlabs / lootlink / lootdest. Auto-fetch via cloud browser.</div>
+  <textarea id="input" placeholder="https://links.lootlabs.gg/s?xxxxx&data=..."></textarea>
+  <button id="btn" onclick="go()">GET KEY</button>
+  <div class="result" id="result"></div>
+</div>
+<script>
+async function go(){
+  const url=document.getElementById('input').value.trim();
+  const btn=document.getElementById('btn');
+  const out=document.getElementById('result');
+  if(!url){out.className='result show err';out.textContent='Link kosong.';return}
+  btn.disabled=true;btn.textContent='FETCHING... 30-60 detik';
+  out.className='result show';
+  out.innerHTML='<div class="status"><span class="spin"></span>Cloud browser launching, auto-clicking missions...</div>';
+  try{
+    const r=await fetch('/api/fetch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+    const d=await r.json();
+    if(d.key){
+      out.innerHTML='<div style="color:#4aff8c">✓ KEY DITEMUKAN</div>'
+        +'<div class="key" id="kt">'+d.key+'</div>'
+        +'<button class="copy" onclick="cp()">📋 COPY KEY</button>'
+        +'<div class="status">Source: '+(d.source||'-').slice(0,100)+'</div>'
+        +'<div class="log">'+(d.logs||[]).join('\\n')+'</div>';
+      try{await navigator.clipboard.writeText(d.key)}catch(e){}
+    }else{
+      out.className='result show err';
+      out.innerHTML='<div class="err">✗ Key nggak ketemu</div>'
+        +'<div class="status">Final: '+(d.finalUrl||'-')+'</div>'
+        +'<div class="log">'+((d.logs||[]).join('\\n')||d.error||'-')+'</div>';
+    }
+  }catch(e){
+    out.className='result show err';out.textContent='Error: '+e.message;
+  }finally{btn.disabled=false;btn.textContent='GET KEY'}
+}
+function cp(){
+  const k=document.getElementById('kt').textContent;
+  navigator.clipboard.writeText(k).then(()=>alert('Copied:\\n'+k));
+}
+</script>
+</body>
+</html>
