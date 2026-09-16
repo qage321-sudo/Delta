@@ -1,0 +1,9 @@
+{
+  "name": "delta-fetcher",
+  "version": "2.0.0",
+  "private": true,
+  "dependencies": {
+    "puppeteer-core": "^21.5.0",
+    "@sparticuz/chromium": "^119.0.0"
+  }
+}
